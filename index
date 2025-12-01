@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guida IVA: Operazioni a Cavallo d'Anno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Apple-style Customizations */
+        :root {
+            --apple-blue: #0071e3;
+            --apple-gray: #f5f5f7;
+            --apple-text: #1d1d1f;
+            --card-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: var(--apple-gray);
+            color: var(--apple-text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+        }
+
+        .hero-text {
+            background: linear-gradient(135deg, #1d1d1f 0%, #434344 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .input-apple {
+            appearance: none;
+            background-color: #f5f5f7;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 17px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .input-apple:focus {
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+        }
+
+        .btn-apple {
+            background-color: var(--apple-blue);
+            color: white;
+            border-radius: 980px;
+            padding: 12px 24px;
+            font-size: 17px;
+            font-weight: 500;
+            transition: transform 0.1s ease, background-color 0.2s;
+        }
+
+        .btn-apple:hover {
+            background-color: #0077ED;
+        }
+
+        .btn-apple:active {
+            transform: scale(0.98);
+        }
+
+        .result-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(10px);
+            opacity: 0;
+        }
+
+        .result-card.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Status Colors */
+        .status-ok { color: #1d1d1f; border-left: 4px solid #34c759; }
+        .status-warn { color: #1d1d1f; border-left: 4px solid #ff9500; }
+        .status-alert { color: #1d1d1f; border-left: 4px solid #ff3b30; }
+
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- Navigation / Header -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-gray-800 text-xl"></i>
+                <span class="font-semibold text-lg tracking-tight">Studio Basso De Bortoli Zambelli</span>
+            </div>
+            <div class="text-sm text-gray-500 hidden sm:block">Circolare 01/12/2025</div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="max-w-3xl mx-auto px-6 pt-20 pb-12 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold hero-text mb-6 tracking-tight leading-tight">
+            Gestione IVA<br>Fatture Fine Anno
+        </h1>
+        <p class="text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
+            Una guida semplice per comprendere quando detrarre l'IVA per le operazioni effettuate a cavallo tra il 2025 e il 2026.
+        </p>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-4xl mx-auto px-6 grid gap-12">
+
+        <!-- Simulator Section -->
+        <section id="simulator" class="glass-panel rounded-3xl p-8 md:p-10">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <i class="fa-solid fa-calculator"></i>
+                </div>
+                <h2 class="text-2xl font-semibold">Simulatore Detrazione</h2>
+            </div>
+            
+            <p class="text-gray-500 mb-8">Rispondi a due domande per sapere in quale mese puoi detrarre l'IVA.</p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Question 1 -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-gray-600 ml-1">Quando hai effettuato l'operazione?</label>
+                    <select id="opDate" class="input-apple w-full cursor-pointer">
+                        <option value="" disabled selected>Seleziona periodo</option>
+                        <option value="dec25">Dicembre 2025</option>
+                        <option value="jan26">Gennaio 2026</option>
+                    </select>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-gray-600 ml-1">Quando hai ricevuto/emesso la fattura?</label>
+                    <select id="invDate" class="input-apple w-full cursor-pointer">
+                        <option value="" disabled selected>Seleziona data ricezione</option>
+                        <option value="dec25">Entro il 31 Dicembre 2025</option>
+                        <option value="jan26_early">Gennaio 2026 (es. 03/01 o 15/01)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button onclick="calculateVAT()" class="btn-apple shadow-lg hover:shadow-xl w-full md:w-auto px-10">
+                    Verifica Detraibilità
+                </button>
+            </div>
+
+            <!-- Result Box -->
+            <div id="resultBox" class="result-card hidden mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                <h3 id="resTitle" class="text-lg font-bold mb-2">Risultato</h3>
+                <p id="resDesc" class="text-gray-600 leading-relaxed"></p>
+            </div>
+        </section>
+
+        <!-- The Rule Explained -->
+        <section class="grid md:grid-cols-2 gap-6">
+            <div class="glass-panel rounded-3xl p-8 transform transition hover:scale-[1.01] duration-300">
+                <h3 class="text-xl font-semibold mb-4 text-gray-900">La Regola Generale</h3>
+                <p class="text-gray-500 leading-relaxed mb-4">
+                    Normalmente, se ricevi una fattura entro il 15 del mese successivo, puoi detrarre l'IVA nel mese dell'operazione.
+                </p>
+                <div class="bg-blue-50 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium inline-block">
+                    Es: Op. Marzo → Fattura ricevuta 10 Aprile → Detraggo a Marzo.
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-8 border-l-4 border-orange-400 transform transition hover:scale-[1.01] duration-300">
+                <h3 class="text-xl font-semibold mb-4 text-gray-900">L'Eccezione di Fine Anno</h3>
+                <p class="text-gray-500 leading-relaxed mb-4">
+                    Questa regola <strong>NON vale</strong> per il passaggio d'anno. Per le operazioni di Dicembre le cui fatture arrivano a Gennaio, la competenza slitta.
+                </p>
+                <div class="bg-orange-50 text-orange-800 px-4 py-2 rounded-lg text-sm font-medium inline-block">
+                    Op. Dicembre → Fattura ricevuta Gennaio → Detraggo a <strong>Gennaio</strong>.
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenarios -->
+        <section>
+            <h2 class="text-3xl font-bold mb-8 hero-text text-center">Casi Pratici</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                
+                <!-- Card 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-600">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Fattura Immediata</h4>
+                    <p class="text-sm text-gray-500 mb-4">Servizio pagato il 27 Dicembre, fattura emessa il 3 Gennaio.</p>
+                    <div class="border-t border-gray-100 pt-4">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Fornitore</p>
+                        <p class="text-sm text-gray-800 mb-2">Versa IVA nel 2025</p>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tu (Cliente)</p>
+                        <p class="text-sm text-blue-600 font-semibold">Detrai a Gennaio 2026</p>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-600">
+                        <i class="fa-solid fa-truck-moving"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Fattura Differita (DDT)</h4>
+                    <p class="text-sm text-gray-500 mb-4">Merce consegnata a Dicembre, fattura emessa il 15 Gennaio.</p>
+                    <div class="border-t border-gray-100 pt-4">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Fornitore</p>
+                        <p class="text-sm text-gray-800 mb-2">Versa IVA a Dicembre 2025</p>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tu (Cliente)</p>
+                        <p class="text-sm text-blue-600 font-semibold">Detrai a Gennaio 2026</p>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-600">
+                        <i class="fa-solid fa-globe-europe"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2">Acquisti UE</h4>
+                    <p class="text-sm text-gray-500 mb-4">Acquisto da fornitore estero (UE). Reverse Charge.</p>
+                    <div class="border-t border-gray-100 pt-4">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Regola</p>
+                        <p class="text-sm text-gray-800">Registrare entro il 15 del mese successivo al ricevimento.</p>
+                        <p class="text-sm text-green-600 mt-2 font-semibold">Detrazione dopo annotazione</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Summary Table -->
+        <section class="mt-12">
+            <h2 class="text-2xl font-bold mb-6 px-2">Tabella di Riepilogo</h2>
+            <div class="glass-panel rounded-2xl overflow-hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="p-4">Periodo Op.</th>
+                            <th class="p-4">Ricezione / Registrazione</th>
+                            <th class="p-4">Periodo Detrazione</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4 font-medium">Dicembre 2025</td>
+                            <td class="p-4 text-gray-600">Ricevuta e registrata a <strong class="text-gray-900">Dicembre 2025</strong></td>
+                            <td class="p-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">Dicembre 2025</span></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4 font-medium">Dicembre 2025</td>
+                            <td class="p-4 text-gray-600">Ricevuta Dic '25, registrata Gen '26 (entro Aprile)</td>
+                            <td class="p-4"><span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">Dich. IVA 2026 (Anno 2025)</span></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4 font-medium">Dicembre 2025</td>
+                            <td class="p-4 text-gray-600">Ricevuta e registrata a <strong class="text-gray-900">Gennaio 2026</strong></td>
+                            <td class="p-4"><span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">Gennaio 2026</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-center text-gray-400 mt-4 max-w-2xl mx-auto">
+                Nota: Le informazioni sono basate sulla circolare del 01.12.2025 e sulle normative vigenti (DPR 100/98, Circ. Ade 1/2018).
+            </p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 py-10 border-t border-gray-200 bg-white">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h5 class="font-semibold text-gray-900 mb-2">Studio Associato Basso - De Bortoli - Zambelli</h5>
+            <p class="text-gray-500 text-sm mb-6">Consulenza Aziendale e del Lavoro • Verona</p>
+            <div class="text-xs text-gray-400">
+                <p>Viale A. Palladio, 42 - 37138 Verona</p>
+                <p class="mt-1">info@bdzassociati.it</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        function calculateVAT() {
+            const opDate = document.getElementById('opDate').value;
+            const invDate = document.getElementById('invDate').value;
+            const resultBox = document.getElementById('resultBox');
+            const resTitle = document.getElementById('resTitle');
+            const resDesc = document.getElementById('resDesc');
+
+            if (!opDate || !invDate) {
+                alert("Per favore seleziona entrambe le date.");
+                return;
+            }
+
+            resultBox.classList.remove('hidden');
+            // Small delay to allow transition to work if it was hidden
+            setTimeout(() => {
+                resultBox.classList.add('show');
+            }, 10);
+            
+            // Logic based on PDF
+            // Case 1: Operation Dec, Receipt Dec
+            if (opDate === 'dec25' && invDate === 'dec25') {
+                resultBox.className = 'result-card show mt-8 bg-green-50 rounded-2xl p-6 border border-green-200 status-ok';
+                resTitle.textContent = "Detrazione a Dicembre 2025";
+                resDesc.innerHTML = "Ottimo. Poiché hai ricevuto la fattura nello stesso mese dell'operazione, puoi detrarre l'IVA nella liquidazione di <strong>Dicembre 2025</strong> (scadenza 16 Gennaio 2026).";
+            }
+            // Case 2: Operation Dec, Receipt Jan
+            else if (opDate === 'dec25' && invDate === 'jan26_early') {
+                resultBox.className = 'result-card show mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-200 status-warn';
+                resTitle.textContent = "Detrazione a Gennaio 2026";
+                resDesc.innerHTML = "Attenzione: Anche se l'operazione è del 2025, la fattura è arrivata nel 2026. Per l'eccezione di fine anno, devi detrarre l'IVA nella liquidazione di <strong>Gennaio 2026</strong>. <br><br><em>Il fornitore verserà l'IVA nel 2025, ma tu la recuperi nel 2026.</em>";
+            }
+            // Case 3: Operation Jan, Receipt Jan
+            else if (opDate === 'jan26' && invDate === 'jan26_early') {
+                resultBox.className = 'result-card show mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-200 status-ok';
+                resTitle.textContent = "Detrazione a Gennaio 2026";
+                resDesc.innerHTML = "Regime ordinario. Operazione e fattura sono entrambe nel 2026. Detrai regolarmente a Gennaio.";
+            }
+            // Fallback
+            else {
+                resultBox.className = 'result-card show mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-200';
+                resTitle.textContent = "Caso non standard";
+                resDesc.textContent = "Verifica i dati inseriti o contatta lo studio per una casistica specifica.";
+            }
+        }
+    </script>
+</body>
+</html>
