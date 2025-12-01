@@ -42,9 +42,10 @@
             border: 1px solid #d2d2d7;
             border-radius: 12px;
             padding: 12px 16px;
-            font-size: 17px;
+            font-size: 15px; /* Slightly smaller for longer text options */
             transition: all 0.2s ease;
             outline: none;
+            line-height: 1.4;
         }
 
         .input-apple:focus {
@@ -138,11 +139,13 @@
 
                 <!-- Question 2 -->
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-semibold text-gray-600 ml-1">Quando hai ricevuto/emesso la fattura?</label>
+                    <label class="text-sm font-semibold text-gray-600 ml-1">Stato Fattura e Registrazione</label>
                     <select id="invDate" class="input-apple w-full cursor-pointer">
-                        <option value="" disabled selected>Seleziona data ricezione</option>
-                        <option value="dec25">Entro il 31 Dicembre 2025</option>
-                        <option value="jan26_early">Gennaio 2026 (es. 03/01 o 15/01)</option>
+                        <option value="" disabled selected>Seleziona situazione</option>
+                        <option value="dec25_ok">Ricevuta e registrata a Dicembre '25</option>
+                        <option value="jan26_std">Ricevuta a Gennaio '26 (es. data emiss. 03/01)</option>
+                        <option value="dec25_delayed_ok">Ricevuta Dic '25 -> Registrata entro Aprile '26</option>
+                        <option value="dec25_delayed_ko">Ricevuta Dic '25 -> Registrata DOPO Aprile '26</option>
                     </select>
                 </div>
             </div>
@@ -258,6 +261,11 @@
                             <td class="p-4 text-gray-600">Ricevuta Dic '25, registrata Gen '26 (entro Aprile)</td>
                             <td class="p-4"><span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">Dich. IVA 2026 (Anno 2025)</span></td>
                         </tr>
+                         <tr class="hover:bg-red-50 transition-colors border-l-4 border-red-500">
+                            <td class="p-4 font-medium">Dicembre 2025</td>
+                            <td class="p-4 text-gray-600">Ricevuta Dic '25, registrata nel 2026 <strong class="text-red-600">dopo Aprile</strong></td>
+                            <td class="p-4"><span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">NON AMMESSA</span></td>
+                        </tr>
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="p-4 font-medium">Dicembre 2025</td>
                             <td class="p-4 text-gray-600">Ricevuta e registrata a <strong class="text-gray-900">Gennaio 2026</strong></td>
@@ -295,40 +303,57 @@
             const resDesc = document.getElementById('resDesc');
 
             if (!opDate || !invDate) {
-                alert("Per favore seleziona entrambe le date.");
+                alert("Per favore seleziona entrambe le voci.");
                 return;
             }
 
             resultBox.classList.remove('hidden');
-            // Small delay to allow transition to work if it was hidden
             setTimeout(() => {
                 resultBox.classList.add('show');
             }, 10);
             
             // Logic based on PDF
-            // Case 1: Operation Dec, Receipt Dec
-            if (opDate === 'dec25' && invDate === 'dec25') {
+            
+            // Case 1: All Dec 25
+            if (opDate === 'dec25' && invDate === 'dec25_ok') {
                 resultBox.className = 'result-card show mt-8 bg-green-50 rounded-2xl p-6 border border-green-200 status-ok';
                 resTitle.textContent = "Detrazione a Dicembre 2025";
-                resDesc.innerHTML = "Ottimo. Poiché hai ricevuto la fattura nello stesso mese dell'operazione, puoi detrarre l'IVA nella liquidazione di <strong>Dicembre 2025</strong> (scadenza 16 Gennaio 2026).";
+                resDesc.innerHTML = "Ottimo. Poiché hai ricevuto e registrato la fattura nello stesso mese dell'operazione, puoi detrarre l'IVA nella liquidazione di <strong>Dicembre 2025</strong> (scadenza 16 Gennaio 2026).";
             }
-            // Case 2: Operation Dec, Receipt Jan
-            else if (opDate === 'dec25' && invDate === 'jan26_early') {
+            // Case 2: Op Dec, Receipt/Reg Jan (Exception)
+            else if (opDate === 'dec25' && invDate === 'jan26_std') {
                 resultBox.className = 'result-card show mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-200 status-warn';
                 resTitle.textContent = "Detrazione a Gennaio 2026";
                 resDesc.innerHTML = "Attenzione: Anche se l'operazione è del 2025, la fattura è arrivata nel 2026. Per l'eccezione di fine anno, devi detrarre l'IVA nella liquidazione di <strong>Gennaio 2026</strong>. <br><br><em>Il fornitore verserà l'IVA nel 2025, ma tu la recuperi nel 2026.</em>";
             }
-            // Case 3: Operation Jan, Receipt Jan
-            else if (opDate === 'jan26' && invDate === 'jan26_early') {
-                resultBox.className = 'result-card show mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-200 status-ok';
+            // Case 3: Op Dec, Received Dec BUT Registered Jan-Apr (Special Case 1)
+            else if (opDate === 'dec25' && invDate === 'dec25_delayed_ok') {
+                resultBox.className = 'result-card show mt-8 bg-yellow-50 rounded-2xl p-6 border border-yellow-200 status-warn';
+                resTitle.textContent = "Detrazione in Dichiarazione Annuale 2026";
+                resDesc.innerHTML = "Hai ricevuto la fattura a Dicembre ma non l'hai registrata subito. Registrandola entro Aprile 2026 (termine dichiarazione), l'IVA confluisce nella <strong>Dichiarazione Annuale IVA 2026</strong> (relativa al 2025).<br><em>Nota: Usare un registro sezionale apposito.</em>";
+            }
+            // Case 4: Op Dec, Received Dec BUT Registered AFTER April (Special Case 2 - DANGER)
+            else if (opDate === 'dec25' && invDate === 'dec25_delayed_ko') {
+                resultBox.className = 'result-card show mt-8 bg-red-50 rounded-2xl p-6 border border-red-200 status-alert';
+                resTitle.innerHTML = "<i class='fa-solid fa-triangle-exclamation mr-2'></i>Detrazione NON Ammessa";
+                resDesc.innerHTML = "<strong>Attenzione massima:</strong> Avendo registrato la fattura (ricevuta a Dicembre) dopo il termine della dichiarazione annuale (Aprile), <strong>hai perso il diritto alla detrazione IVA</strong>.";
+            }
+            // Case 5: Standard 2026
+            else if (opDate === 'jan26' && (invDate === 'jan26_std' || invDate.startsWith('jan'))) {
+                 resultBox.className = 'result-card show mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-200 status-ok';
                 resTitle.textContent = "Detrazione a Gennaio 2026";
                 resDesc.innerHTML = "Regime ordinario. Operazione e fattura sono entrambe nel 2026. Detrai regolarmente a Gennaio.";
             }
-            // Fallback
+            // Fallbacks for illogical combinations
+            else if (opDate === 'jan26' && invDate.startsWith('dec')) {
+                 resultBox.className = 'result-card show mt-8 bg-gray-100 rounded-2xl p-6 border border-gray-300';
+                resTitle.textContent = "Combinazione Improbabile";
+                resDesc.textContent = "Non puoi avere un'operazione effettuata a Gennaio 2026 con fattura ricevuta/registrata a Dicembre 2025 (il futuro non può anticipare il passato fiscale). Verifica le date.";
+            }
             else {
                 resultBox.className = 'result-card show mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-200';
-                resTitle.textContent = "Caso non standard";
-                resDesc.textContent = "Verifica i dati inseriti o contatta lo studio per una casistica specifica.";
+                resTitle.textContent = "Caso Standard";
+                resDesc.textContent = "Verifica i dati inseriti. Se l'operazione e la registrazione avvengono nello stesso anno fiscale, la detrazione segue il mese di registrazione.";
             }
         }
     </script>
